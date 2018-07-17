@@ -1,0 +1,77 @@
+
+
+<h1> HAR Reader </h1>
+
+<% path = File.join Rails.root, 'public', 'gtblogvault.har' %>
+<% file = File.read(path) %>
+<% data = JSON.parse(file) %>
+<% total_requests = data['log']['entries'].count %>
+
+<%= @full_timeline =  Time.iso8601(data['log']['entries'][total_requests-1]['startedDateTime']).to_f - Time.iso8601(data['log']['entries'][0]['startedDateTime']).to_f + data['log']['entries'][total_requests-1]['time'].to_f.round(3)/1000 %>
+<%= @full_timeline = @full_timeline*1000.to_f.round(3) %>
+
+<% start=0 %>
+<% @total_size = 0 %>
+<p> RTSSB - Request To Time Start Since Begining </p>
+<table>
+	<tr><th> S.No. </th><th> Request </th><th> Status </th><th> Size </th><th> Compressed Size </th><th> Actual Size </th><th> Started Date Time </th><th> RTSSB </th><th> Total Time </th><th> Blocking </th><th> DNS Lookup </th><th> Connecting </th><th> Sending </th><th> Waiting </th><th> Receiving </th><th> Bar Is Here </th></tr>
+	<% while start < total_requests do %>
+
+	<% @request = data['log']['entries'][start]['request']['method'] %>
+	<% @status = data['log']['entries'][start]['response']['status'] %>
+	
+	<% @size = data['log']['entries'][start]['response']['content']['size'] %>
+	<% @size = @size %>
+	<% if data['log']['entries'][start]['response']['content']['compression'] %>
+		<% @compressed = data['log']['entries'][start]['response']['content']['compression'] %>
+	<% else %>
+		<% @compressed = 0 %>
+	<% end %>
+	<% @actual_size = @size-@compressed %>
+	<% @total_size = @total_size + @actual_size %>
+	
+	<% @request_time_start_since_begining = Time.iso8601(data['log']['entries'][start]['startedDateTime']).to_f - Time.iso8601(data['log']['entries'][0]['startedDateTime']).to_f %>
+	<% @started_date_time = data['log']['entries'][start]['startedDateTime'] %>
+	
+	<% @total_time = data['log']['entries'][start]['time'].to_f.round(3) %>
+
+
+	<% @blocking = data['log']['entries'][start]['timings']['blocked'] %>
+	<% @dns_lookup = data['log']['entries'][start]['timings']['dns'] %>
+	<% @connecting = data['log']['entries'][start]['timings']['connect'] %>
+	<% @sending = data['log']['entries'][start]['timings']['send'] %>
+	<% @waiting = data['log']['entries'][start]['timings']['wait'] %>
+	<% @receiving = data['log']['entries'][start]['timings']['receive'] %>
+	<tr>
+		<td><%= start %></td>
+		<td><%= @request %></td>
+		<td><%= @status %></td>
+		<td><%= @size %> </td>
+		<td><%= @compressed %></td>
+		<td><%= @actual_size %></td>
+		<td><%= @started_date_time %></td>
+		<td style='text-align:center;'><%= @request_time_start_since_begining.round(3) %> s </td>
+		<td><%= @total_time %> ms </td>
+		<td><%= @blocking %></td>
+		<td><%= @dns_lookup %></td>
+		<td><%= @connecting %></td>
+		<td><%= @sending %></td>
+		<td><%= @waiting %></td>
+		<td><%= @receiving %></td>
+		
+		<td style=' width:800px; background:#CCC;'>
+			<% @current_timeline = data['log']['entries'][start]['time'].to_f.round(3) %>
+			<% @current_width = (@current_timeline/@full_timeline)*100 %>
+			<% @current_margin_left = ((@request_time_start_since_begining.round(3)*1000)/@full_timeline)*100 %>
+			<div style='background:#F00; height:15px; width:<%= @current_width.to_f.round(3) %>%; margin-left:<%= @current_margin_left.to_f.round(3) %>%; float:left;'></div>
+					
+		</td>
+	</tr>
+	<% start +=1 %>
+
+<% end %>
+	
+<% @fully_loaded_time = @request_time_start_since_begining + @total_time/1000 %>
+
+<tr><td> Total Requests :  </td><td><strong><%= total_requests %></strong></td><td></td><td></td><td></td><td>Size : <%= @total_size/1000/1024.round(3) %> MB  </td><td></td><td> Fully Loaded Time : <%= @fully_loaded_time.to_f.round(3)  %> Sec </td></tr>
+</table>
