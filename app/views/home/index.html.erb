@@ -1,4 +1,49 @@
-
+<style>
+	.blocking{
+		background:#e0d0b8;
+		height:16px;
+			float:left;
+	}
+	.dns_lookup{
+		background:#57b0bf;
+		height:16px;
+		float:left;
+	}
+	.connecting{
+		background:#b0dc59;
+		height:16px;
+		float:left;
+	}
+	.sending{
+		background:#d7806a;
+		height:16px;
+		float:left;
+	}
+	.waiting{
+		background:#9788b6;
+		height:16px;
+		float:left;
+	}
+	.receiving{
+		background:#b7b7b7;
+		height:16px;
+		float:left;
+	}
+	table{
+		border-collapse: collapse;
+		cellspacing:0;
+			cellpadding:0;
+	}
+	tr{
+		border:0px;
+		margin:0px;
+			padding:0px;
+	}
+	td{
+		margin:0px;
+			padding:0px;
+	}
+</style>
 
 <h1> HAR Reader </h1>
 
@@ -14,7 +59,7 @@
 <% @total_size = 0 %>
 <p> RTSSB - Request To Time Start Since Begining </p>
 <table>
-	<tr><th> S.No. </th><th> Request </th><th> Status </th><th> Size </th><th> Compressed Size </th><th> Actual Size </th><th> Started Date Time </th><th> RTSSB </th><th> Total Time </th><th> Blocking </th><th> DNS Lookup </th><th> Connecting </th><th> Sending </th><th> Waiting </th><th> Receiving </th><th> Bar Is Here </th></tr>
+	<tr><th> S.No. </th><th> Request </th><th> Status </th><!--<th> Size </th><th> Compressed Size </th>--><th> Actual Size </th><th> Started Date Time </th><th> RTSSB </th><th> Total Time </th><th> Blocking </th><th> DNS Lookup </th><th> Connecting </th><th> Sending </th><th> Waiting </th><th> Receiving </th><th> Bar Is Here </th></tr>
 	<% while start < total_requests do %>
 
 	<% @request = data['log']['entries'][start]['request']['method'] %>
@@ -46,8 +91,8 @@
 		<td><%= start %></td>
 		<td><%= @request %></td>
 		<td><%= @status %></td>
-		<td><%= @size %> </td>
-		<td><%= @compressed %></td>
+		<!--<td><%# @size %> </td>
+		<td><%# @compressed %></td>-->
 		<td><%= @actual_size %></td>
 		<td><%= @started_date_time %></td>
 		<td style='text-align:center;'><%= @request_time_start_since_begining.round(3) %> s </td>
@@ -59,11 +104,34 @@
 		<td><%= @waiting %></td>
 		<td><%= @receiving %></td>
 		
-		<td style=' width:800px; background:#CCC;'>
-			<% @current_timeline = data['log']['entries'][start]['time'].to_f.round(3) %>
-			<% @current_width = (@current_timeline/@full_timeline)*100 %>
-			<% @current_margin_left = ((@request_time_start_since_begining.round(3)*1000)/@full_timeline)*100 %>
-			<div style='background:#F00; height:15px; width:<%= @current_width.to_f.round(3) %>%; margin-left:<%= @current_margin_left.to_f.round(3) %>%; float:left;'></div>
+		<td style=' width:800px;'>
+			<% 
+				 @current_timeline = data['log']['entries'][start]['time'].to_f.round(3)
+				 @current_width = (@current_timeline/@full_timeline)*100
+				 @current_margin_left = ((@request_time_start_since_begining.round(3)*1000)/@full_timeline)*100
+
+				 #@total_bar_width = @blocking>0?@blocking:0 + @dns_lookup>0?@dns_lookup:0 + @connecting>0?@connecting:0 + @sending>0?@sending:0 + @waiting>0?@waiting:0 + @receiving>0?@receiving:0
+				 @total_bar_width = @total_time
+			 %>
+			
+			 <%
+
+				 @blocking_width = @blocking>0?(@blocking/@total_bar_width)*100:0  
+				 @dns_lookup_width = @dns_lookup>0?(@dns_lookup/@total_bar_width)*100:0  
+				 @connecting_width = @connecting>0?(@connecting/@total_bar_width)*100:0  
+				 @sending_width = @sending>0?(@sending/@total_bar_width)*100:0  
+				 @waiting_width = @waiting>0?(@waiting/@total_bar_width)*100:0  
+				 @receiving_width = @receiving>0?(@receiving/@total_bar_width)*100:0  
+			 %>
+
+			 <div style='background:#F00; height:16px; width:<%= @current_width.to_f.round(3) %>%; margin-left:<%= @current_margin_left.to_f.round(3) %>%; float:left;'>
+				 <div class='blocking' style='width:<%= @blocking_width %>%;'></div>
+				 <div class='dns_lookup' style='width:<%= @dns_lookup_width %>%;'></div>
+				 <div class='connecting' style='width:<%= @connecting_width %>%;'></div>
+				 <div class='sending' style='width:<%= @sending_width %>%;'></div>
+				 <div class='waiting' style='width:<%= @waiting_width %>%;'></div>
+				 <div class='receiving' style='width:<%= @receiving_width %>%;'></div>
+			 </div>
 					
 		</td>
 	</tr>
@@ -72,6 +140,13 @@
 <% end %>
 	
 <% @fully_loaded_time = @request_time_start_since_begining + @total_time/1000 %>
-
-<tr><td> Total Requests :  </td><td><strong><%= total_requests %></strong></td><td></td><td></td><td></td><td>Size : <%= @total_size/1000/1024.round(3) %> MB  </td><td></td><td> Fully Loaded Time : <%= @fully_loaded_time.to_f.round(3)  %> Sec </td></tr>
 </table>
+
+<table>
+	<tr>
+		<td> Total Requests :  </td><td><strong><%= total_requests %></strong></td>
+		<td>Size : <%= @total_size/1000/1024.round(3) %> MB  </td>
+		<td> Fully Loaded Time : <%= @fully_loaded_time.to_f.round(3)  %> Sec </td>
+	</tr>
+</table>
+
