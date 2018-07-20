@@ -52,26 +52,23 @@
 <% data = JSON.parse(file) %>
 <% total_requests = data['log']['entries'].count %>
 
-<%= @full_timeline =  Time.iso8601(data['log']['entries'][total_requests-1]['startedDateTime']).to_f - Time.iso8601(data['log']['entries'][0]['startedDateTime']).to_f + data['log']['entries'][total_requests-1]['time'].to_f.round(3)/1000 %>
-<%= @full_timeline = @full_timeline*1000.to_f.round(3) %>
+<% @full_timeline =  Time.iso8601(data['log']['entries'][total_requests-1]['startedDateTime']).to_f - Time.iso8601(data['log']['entries'][0]['startedDateTime']).to_f + data['log']['entries'][total_requests-1]['time'].to_f.round(3)/1000 %>
+<% @full_timeline = @full_timeline*1000.to_f.round(3) %>
 
 <% start=0 %>
 <% @total_size = 0 %>
 <p> RTSSB - Request To Time Start Since Begining </p>
 <table>
-	<tr><th> S.No. </th><th> Request </th><th> Status </th><!--<th> Size </th><th> Compressed Size </th>--><th> Actual Size </th><th> Started Date Time </th><th> RTSSB </th><th> Total Time </th><th> Blocking </th><th> DNS Lookup </th><th> Connecting </th><th> Sending </th><th> Waiting </th><th> Receiving </th><th> Bar Is Here </th></tr>
+	<tr><th> S.No. </th><th> Request </th><th style='max-width:300px;'> URL </th><th> Status </th><!--<th> Size </th><th> Compressed Size </th>--><th> Actual Size </th><!--<th> Started Date Time </th>--><th> RTSSB </th><th> Total Time </th><th> Blocking </th><th> DNS Lookup </th><th> Connecting </th><th> Sending </th><th> Waiting </th><th> Receiving </th><th> Bar Is Here </th></tr>
 	<% while start < total_requests do %>
 
 	<% @request = data['log']['entries'][start]['request']['method'] %>
+	<% @url = data['log']['entries'][start]['request']['url'] %>
 	<% @status = data['log']['entries'][start]['response']['status'] %>
 	
 	<% @size = data['log']['entries'][start]['response']['content']['size'] %>
 	<% @size = @size %>
-	<% if data['log']['entries'][start]['response']['content']['compression'] %>
-		<% @compressed = data['log']['entries'][start]['response']['content']['compression'] %>
-	<% else %>
-		<% @compressed = 0 %>
-	<% end %>
+	<% @compressed = data['log']['entries'][start]['response']['content']['compression'] || 0 %>
 	<% @actual_size = @size-@compressed %>
 	<% @total_size = @total_size + @actual_size %>
 	
@@ -90,11 +87,12 @@
 	<tr>
 		<td><%= start %></td>
 		<td><%= @request %></td>
+		<td title='<%= @url %>'><%= @url[0..30] %></td>
 		<td><%= @status %></td>
 		<!--<td><%# @size %> </td>
 		<td><%# @compressed %></td>-->
-		<td><%= @actual_size %></td>
-		<td><%= @started_date_time %></td>
+		<td title='Compressed = <%= @compressed %> B, Original Size = <%= @size %> B'><%= @actual_size %> B</td>
+		<!--<td><%# @started_date_time %></td>-->
 		<td style='text-align:center;'><%= @request_time_start_since_begining.round(3) %> s </td>
 		<td><%= @total_time %> ms </td>
 		<td><%= @blocking %></td>
