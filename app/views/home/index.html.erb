@@ -84,7 +84,7 @@
 	<% @sending = data['log']['entries'][start]['timings']['send'] %>
 	<% @waiting = data['log']['entries'][start]['timings']['wait'] %>
 	<% @receiving = data['log']['entries'][start]['timings']['receive'] %>
-	<tr>
+	<tr style='color:<%= @status==404?'#F00':'#000' %>;'>
 		<td><%= start %></td>
 		<td><%= @request %></td>
 		<td title='<%= @url %>'><%= @url[0..30] %></td>
